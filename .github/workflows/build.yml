@@ -1,0 +1,32 @@
+name: Phantom X build
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unzip project
+        run: unzip -q PhantomX.zip
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools"
+      - name: Install NDK
+        run: sdkmanager --install "ndk;26.1.10909125"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+      - name: Build debug APK
+        working-directory: PhantomX
+        env:
+          PHANTOM_EMAIL: ${{ secrets.PHANTOM_EMAIL }}
+          PHANTOM_PASSWORD: ${{ secrets.PHANTOM_PASSWORD }}
+        run: gradle assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phantomx-debug-apk
+          path: PhantomX/app/build/outputs/apk/debug/*.apk
